@@ -1,0 +1,495 @@
+\documentclass{book}
+\usepackage{amsmath}
+\newcommand{\argmin}{\arg\!\min} 
+\newcommand{\argmax}{\arg\!\max} 
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage[T1]{fontenc}
+\usepackage{bm}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+%\newcommand{\argmin}{\arg\!\min} 
+%\newcommand{\argmax}{\arg\!\max} 
+\newtheorem{theorem}{Theorem}
+\newtheorem{definition}{Definition}
+\newtheorem{proposition}{Proposition}
+\newtheorem{problem}{Problem}
+
+\title{Control theory notes}
+\date{\today}
+\author{Marko Guberina}
+
+\begin{document}
+\pagenumbering{gobble}
+\maketitle
+\newpage
+\pagenumbering{arabic}
+
+\chapter{MIMO CONTROL}%
+\label{cha:mimo_control}
+
+\section{Analysis of mimo control loops}
+The state space model can be written as:
+%\begin{equation}
+\begin{align}
+		\label{eq-state-space-model}
+		\dot{x} (t) &= \bm{A}_{} x (t) + \bm{B}_{} u (t) \\
+		\dot{y} (t) &= \bm{C}_{} x (t) + \bm{D}_{} u (t) 
+%		\label{eq-state-space-model-y}
+\end{align}
+%\end{equation}
+where $ x (t_{ 0 }) = x_{ 0 }  $, $ x \in \mathbb{R}^{ n }  $ is the state vector,
+$ x_{ 0 }  $ is the state vector at $ t=t_{ 0 }  $
+and where $ \bm{A}_{} \in \mathbb{R}^{ n \times n } , \bm{B}_{} \in \mathbb{R}^{ n \times m }, 
+\bm{C}_{} \in \mathbb{R}^{ m \times n }, $ and $ \bm{D}_{} \in \mathbb{R}^{ m \times m }  $.
+
+Laplace transforming \ref{eq-state-space-model} gives:
+\begin{align}
+		s X(s) - x(0) &= \bm{A} X(s) + \bm{B} U (s)\\
+		Y (s) &= \bm{C} X (s) + \bm{D} U (s)
+\end{align}
+Taking $ x (0) = 0  $, we get
+\begin{equation}
+Y (s) = (\bm{C} (s\bm{I}  - \bm{A}) ^{ -1 }\bm{B} +\bm{D} ) U (s)
+\end{equation}
+The \textit{matrix transfer function} $ G (s)  $ is then defined by:
+\begin{equation}
+G (s) \triangleq \bm{C}  (s \bm{I} - \bm{A} )^{ -1 }\bm{B}  + \bm{D} 
+\end{equation}
+
+\begin{definition}[]
+		A transfer fuction matrix $ \bm{G} (s)  $ is said to be a 
+		\textbf{proper matrix} if every one of its elements is a proper transfer function.
+\end{definition}
+Observation: $ \bm{G}_{ik} (s)  $ is the Laplace transform of the
+$ i  $-th component of $ y (t)  $, when the $ k  $-th component of
+$ u (t)  $ is an impulse.
+\begin{definition}[]
+		The \textbf{impulse response matrix} of the system, $ \bm{g} (t)  $, is 
+		the inverse Laplace transform of the transfer function matrix $ \bm{G} (s)  $
+\end{definition}
+
+
+\section{Design via optimal control techniques}
+Consider a general nonlinear system with input $ u (t) \in \mathbb{R}^{ m }  $:
+\begin{equation}
+\frac{dx (t)}{dt} = f (x (t), u (t), t)
+\end{equation}
+where $ x (t) \in \mathbb{R}^{ n }  $,
+with the following optimization problem:
+\begin{problem}[General optimal control problem]
+		Find an optimal input $ u^{ o } (t)$, for $ t \in \left[ t_{ o }, t_{ f } \right]   $,
+		such that:
+		\begin{equation}
+		u^{ o } (t) = \argmin_{u (t)} \left\{ 
+\int_{t_{ 0 }}^{t_{ f }} \mathcal{V} (x,u,t) dt + g (x (t_{ f }))
+		\right\} 
+		\end{equation}
+		where $ \mathcal{V} (x,u,t)  $
+		and $ g (x (t_{ f }))  $ are nonnegative functions.
+\end{problem}
+One way to solve this is to use dynamic programming, which is based on the following result:
+\begin{theorem}[Optimality principle (Bellman)]
+	If $ u (t) = u^{ o } (t), t \in \left[ t_{ o }, t_{ f } \right]   $	
+	is the optimal solution to the above problem, then 
+	$ u^{ o } (t)  $ is also the optimal solution over the
+	(sub)inverval $ \left[ t_{ o } + \Delta t, t_{ f } \right]   $,
+	where $ t_{ o } < t_{ 0 } + \Delta t < t_{ f }  $.
+\end{theorem}
+\paragraph{Proof}
+By contradiction.
+Denote by $ x^{ o } (t)  $ the state evolution resulting from 
+applying $ u^{ o } (t)  $ over the whole interval $ t \in \left[ t_{ o }, t_{ f } \right]   $.
+The optimal cost over the interval is
+\begin{equation}
+\int_{t_{ o }}^{t_{ o } + \Delta t} \mathcal{V} (x^{ o }, u^{ o }, t) dt +
+\int_{t_{ o }+ \Delta t}^{t_{ f }} \mathcal{V} (x^{ o }, u^{ o }, t) dt + g (x^{ o } (t_{ f }))
+\end{equation}
+Assume there exists an input $ \tilde{u} (t)  $ such that:
+\begin{equation}
+\tilde{u} (t) = \argmin_{u (t)} \left\{ 
+\int_{t_{ o } + \Delta t}^{t_{ f }} \mathcal{V} (x, u, t) dt + g (x (t_{ f }))
+\right\} 
+\end{equation}
+with corresponding state trajectory $ \tilde{x} (t)  $ such that
+$ \tilde{x} ( t_{ 0 } + \Delta t) = x^{ o } (t_{ o } + \Delta t)  $.
+Assume
+\begin{equation}
+\int_{t_{ o } + \Delta t}^{t_{ f }} \mathcal{V} (\tilde{x}, \tilde{u}, t) dt + g (\tilde{x} (t_{ f })) <
+\int_{t_{ o }+ \Delta t}^{t_{ f }} \mathcal{V} (x^{ o }, u^{ o }, t) dt + g (x^{ o } (t_{ f }))
+\end{equation}
+Consider now the policy of applying $ u (t) = u^{ o } (t)  $ in the interval
+$ \left[ t_{ o }, t_{ o } + \Delta t \right]   $ and then
+$ u (t) = \tilde{u} (t)  $ over the interval $ \left[ t_{ o } + \Delta t, t_{ f } \right]   $.
+The resulting cost over the complete interval would be:
+\begin{equation}
+\int_{t_{ o }}^{t_{ o } + \Delta t} \mathcal{V} (x^{ o }, u^{ o }, t) dt +
+\int_{t_{ o } + \Delta t}^{t_{ f }} \mathcal{V} (\tilde{x}, \tilde{u},t) dt + g (\tilde{x} (t_{ f }))
+\end{equation}
+This would thus result in a smaller cost than to use $ u (t) = u^{ o } (t)  $ over the same interval,
+contradicting the assumption of optimality of $ u^{ o } (t)  $ over that interval. $   \blacksquare $
+
+We now use this to derive necessary conditions for the optimal $ u  $
+by using the optimality principle with an infinitesimal time interval
+$ \left[ t, t + \Delta t \right]   $ and mathing it.
+We denote the optimal (minimal) cost in $ \left[ t, t+ \Delta t \right]   $
+with initial state $ x (t)  $ by:
+\begin{equation}
+J^{ o } (x (t), t) = 
+\underset{\tau \in \left[ t, t_{ f } \right] }{\min_{u (\tau)}}
+\left\{ 
+\int_{t}^{t_{ f }} \mathcal{V} (x,u,t)  d\tau + g (x (t_{ f }))
+\right\} 
+\end{equation}
+Now we apply the Bellman optimality theorem:
+\begin{equation}
+J^{ o } (x (t), t) = 
+\underset{\tau \in \left[ t, t+ \Delta t \right] }{\min_{u (\tau)}}
+\left\{ 
+\int_{t}^{t + \Delta t} \mathcal{V} (x^{  }, u^{  }, t) d\tau +
+J^{ o } (x (t + \Delta t), t + \Delta t)
+\right\} 
+\end{equation}
+Now consider $ \Delta t  $ to be very small.
+We expand $ J^{ o } (x (t + \Delta t), t + \Delta t)  $ in a Taylor series.
+We get:
+\begin{equation}
+J^{ o } (x (t), t) = \min_{u (t)} \left\{ 
+\mathcal{V} (x^{  } (t), u^{  } (t), t) \Delta t +
+J^{ o } (x (t), t) + 
+\frac{\partial J^{ o } (x (t), t)}{\partial t} \Delta t +
+\left[ 
+\frac{\partial J^{ o } (x (t), t)}{\partial x} 
+\right]^{ T }
+(x (t + \Delta t) - x (t)) + \mathcal{O} (x,t)
+\right\} 
+\end{equation}
+where $ \mathcal{O} (x,t)  $ are the high order terms.
+Now we let $ \Delta t \to dt  $, getting
+\begin{equation}
+- \frac{\partial J^{ o } (x (t), t)}{\partial t} =
+\min_{u (t)} \left\{ 
+\mathcal{W} (x (t), u (t), t)
+\right\} 
+\end{equation}
+where
+\begin{equation}
+\mathcal{W} (x (t), u (t), t) = \mathcal{V} (x (t), u (t), t)  + 
+\left[ 
+\frac{\partial J^{ o } (x (t), t)}{\partial x} 
+\right] ^{ T } 
+f (x (t), u (t), t)
+\end{equation}
+The optimal $ u (t)  $ can be expressed as:
+\begin{equation}
+u^{ o } (t) = \mathcal{U} \left( 
+\frac{\partial J^{ o } (x (t), t)}{\partial x} , x (t), t
+\right) 
+\end{equation}
+which leads to the optimal cost:
+\begin{equation}
+- \frac{\partial J^{ o } (x (t), t)}{\partial t} =
+\mathcal{V} (x (t), \mathcal{U}, t)) + 
+\left[ 
+\frac{\partial J^{ o } (x (t), t)}{\partial x} 
+\right]^{ T } f (x (t), \mathcal{U}, t)
+\end{equation}
+and the solution must satisfy the boundary condition:
+\begin{equation}
+J^{ o } (x (t_{ f }), t_{ f }) = g (x (t_{ f }))
+\end{equation}
+
+\subsection{Linear Quadratic Regulator (LQR)}
+We now apply the above theory to the following problem:
+\begin{problem}[The LQR problem]
+	Consider a linear time invariat system having a state space model:
+	\begin{align}
+			\frac{d x (t)}{dt}  &= \bm{A} x (t) + \bm{B}u (t) \\
+			y (t) = \bm{C} x (t) + \bm{D}u (t)
+	\end{align}
+	where $ x (t_{ 0 })= x_{ 0 }  $,
+	$ x \in \mathbb{R}^{ n }  $ is the state vector,
+	$ u \in \mathbb{R}^{ m }   $ is the input,
+	$ y \in \mathbb{R}^{ p }  $ is the output, 
+	$ x_{ o } \in \mathbb{R}^{ n }  $ is the state vector at $ t = t_{ o }  $
+	and $ \bm{A}, \bm{B}, \bm{C},\bm{D}  $ are matrices of appropriate dimensions.
+
+	Assume that the aim is to drive the initial state $ x_{ o }  $ to the smallest
+	possible value as soon as possible in $ \left[ t_{ o }, t_{ f } \right]   $,
+	without spending too much control effort.
+	Then, the optimal regulator problem is the problem of finding an optimal control
+	$ u (t)  $ over $ \left[ t_{ o }, t_{ f } \right]    $ such that the following cost function
+	is minimized:
+	\begin{equation}
+	J_{ u } (x (t_{ o }), t_{ o }) = 
+	\int_{t_{ o }}^{t_{ f }} \left[ 
+x (t)^{ T } \bm{\Psi} x (t) + u (t)^{ T } \bm{\Phi} u (t)
+	\right]  dt
+	+ x (t_{ f })^{ T } \bm{\Psi}_{ f } x (t)
+	\end{equation}
+	where $ \bm{\Psi} \in \mathbb{R}^{ n \times n }, \bm{\Psi}_{ f } \in \mathbb{R}^{ n \times n }  $
+	are symmetric nonnegative definite matrices and 
+	$ \bm{\Phi} \in \mathbb{R}^{m \times  m}   $ is a symmetric positive definite matrix.
+\end{problem}
+We begin by writing the LQR problem in terms of the general optimal problem:
+\begin{align}
+		f (x (t), u (t), t) &= \bm{A} x (t) + \bm{B} u (t) \\
+		\mathcal{V} (x,u,t) &= x (t)^{ T } \bm{\Psi} x (t) + u (t) \bm{\Phi} u (t)\\
+		g (x (t_{ f })) &= x (t_{ f }) \bm{\Psi}_{ f } x (t_{ f })
+\end{align}
+Then:
+\begin{align}
+		\mathcal{W} (x (t), u (t), t) &\triangleq 
+		\mathcal{V} (x (t), u (t), t) + 
+		\left[ \frac{\partial J^{ o } (x (t), t)}{\partial x}  \right] ^{ T }
+		f (x (t), u (t), t) \\
+									  &=
+x (t)^{ T } \bm{\Psi} x (t) + u (t)^{ T } \bm{\Phi} u (t) + 
+\left[ \frac{\partial J^{ o } (x (t), t)}{\partial x}  \right]^{ T }
+\left( \bm{A}x (t) + \bm{B}u (t) \right) 
+\end{align}
+To obtain the optimal $ u (t)  $, we need to minimize
+$ \mathcal{W} (x (t), u (t), t)  $.
+We begin by calculating the gradient of it w.r.t. $ u  $ and setting it to zero.
+\begin{equation}
+\frac{\partial W}{\partial u} = 
+2 \bm{\Phi} u (t) = \bm{B}^{ T } \frac{\partial J^{ o } (x (t), t)}{\partial x} 
+\end{equation}
+From this we get:
+\begin{equation}
+		\label{eq-opt-lqr-u}
+		u^{ o} (t) = - \frac{1}{2} \bm{\Phi}^{ -1 }\bm{B}^{ T } \frac{\partial J^{ o } (x (t), t)}{\partial x} 
+\end{equation}
+We observe that the Hessian of $ \mathcal{W}  $ is w.r.t. $ u  $ is equal to
+$ \bm{\Phi}  $ which is by assumption positive definite.
+This confirms that \ref{eq-opt-lqr-u} gives a minimum for $ \mathcal{W}  $.
+Note that:
+\begin{equation}
+J ^{ o } (x^{ o } (t_{ f }), t_{ f }) = \left[ x^{ o } (t_{ f }) \right] ^{ T }
+\bm{\Psi}_{ f } x^{ o } (t_{ f })
+\end{equation}
+This is a quadratic of the state at $ t_{ f }  $.
+By induction, this is true at every $ t_{ f }  $.
+We proceed by assuming that:
+\begin{equation}
+J^{ o } (x (t), t) = x^{ T } (t) \bm{P} (t) x (t) \text{ with } \bm{P} (t) = \left[ \bm{P} (t) \right] ^{ T }
+\end{equation}
+With this we have:
+\begin{align}
+		\frac{\partial J^{ o } (x (t), t)}{\partial x}  &= 2 \bm{P} (t) x (t)\\
+		\frac{\partial J^{ o } (x (t), t)}{\partial t}  &= x^{ T } (t) \frac{d \bm{P} (t) }{dt}  x (t)
+\end{align}
+Combining previous results, we get that the optimal control can be expressed as
+\begin{equation}
+u^{ o } (t) = - \bm{K}_{ u } (t) x (t)
+\end{equation}
+where $ \bm{K}_{ u } (t)  $ is a time varying gain given by
+\begin{equation}
+\bm{K}_{ u } (t) = \bm{\Phi}^{ -1 } \bm{B}^{ T } \bm{P} (t)
+\end{equation}
+
+We also have
+\begin{equation}
+\mathcal{W} (x (t), u^{ o } (t), t) = x^{ T } (t)
+\left( 
+\bm{\Psi} - \bm{P} (t) \bm{B} \bm{\Phi}^{ -1 } \bm{B}^{ T } \bm{P} (t) + 2 \bm{P} (t) \bm{A}
+\right) x (t)
+\end{equation}
+To get $ \bm{K}_{ u } (t)  $, we need $ \bm{P} (t)  $
+which by combining results leads to 
+\begin{equation}
+-x^{ T } \frac{d \bm{P} (t)}{dt}  x (t) = 
+\left( 
+\bm{\Psi} - \bm{P} (t) \bm{B} \bm{\Phi}^{ -1 } \bm{B}^{ T } \bm{P} (t) + 2 \bm{P} (t) \bm{A}
+\right) x (t)
+\end{equation}
+Also,
+\begin{equation}
+		2 x ^{ T } ( t) \bm{P} (t) \bm{A}x (t) = x^{ T } (t) \left( 
+\bm{P} (t) \bm{A} + \bm{A}^{ T } \bm{P} (t)
+		\right) x (t)
+\end{equation}
+For this to hold for all $ x (t)  $, we require:
+\begin{equation}
+		\label{-eq-ctdre}
+- \frac{d \bm{P} (t)}{dt}  =
+\bm{\Psi} - \bm{P} (t) \bm{B} \bm{\Phi} ^{ -1 }\bm{B}^{ T } \bm{P} (t) + 
+\bm{P} (t) \bm{A} + \bm{A}^{ T } \bm{P} (t)
+\end{equation}
+This is the Continuous Time Dynamic Riccati Equation (CTDRE).
+It needs to be solved backwards in time to satisfy the boundary condition
+\begin{equation}
+\bm{P} (t_{ f }) = \bm{\Psi}_{ f }
+\end{equation}
+
+The above theory holds well for time varying systems,
+but we can say more in the time-invariant case.
+
+\subsection{Properties of Linear Quadratic Optimal Regulator}
+Here we assume $ \bm{A},\bm{B}, \bm{\Psi}, \bm{\Phi}  $ are all time-invariant.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
+
